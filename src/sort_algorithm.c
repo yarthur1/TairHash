@@ -17,7 +17,7 @@
 
 #if defined(SORT_MODE)
 extern ExpireAlgorithm g_expire_algorithm;
-extern m_zskiplist *g_expire_index[DB_NUM];
+extern m_zskiplist *g_expire_index[DB_NUM];  // 全局索引
 extern RedisModuleType *TairHashType;
 
 void insert(RedisModuleCtx *ctx, int dbid, RedisModuleString *key, tairHashObj *o, RedisModuleString *field, long long expire) {

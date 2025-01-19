@@ -277,7 +277,7 @@ unsigned int slab_deleteTairhashRangeByRank(tairhash_zskiplist *zsl, unsigned in
     return tairhash_zslDeleteRangeByRank(zsl, start, end);
 }
 
-#ifdef __AVX2__
+#ifdef __AVX2__  // 支持simd
 int slab_getSlabTimeoutExpireIndex(tairhash_zskiplistNode *node, int *ontime_indices, int *timeout_indices) {
     long long now = RedisModule_Milliseconds();
     if (node == NULL || node->expire_min > now) return 0;

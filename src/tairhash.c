@@ -77,7 +77,7 @@ RedisModuleString *takeAndRef(RedisModuleString *str) {
 
 int isExpire(long long when) {
     if (when == 0) return 0;
-    return RedisModule_Milliseconds() > when;
+    return RedisModule_Milliseconds() > when;  // now > when
 }
 
 int delEmptyTairHashIfNeeded(RedisModuleCtx *ctx, RedisModuleKey *key, RedisModuleString *raw_key, tairHashObj *obj) {
@@ -147,7 +147,7 @@ void tairhashScanCallback(void *privdata, const m_dictEntry *de) {
     if (sval) {
         val = sval->value;
     }
-    m_listAddNodeTail(keys, key);
+    m_listAddNodeTail(keys, key);  // 将key val添加到list
     if (val) {
         m_listAddNodeTail(keys, val);
     }
@@ -270,7 +270,7 @@ void activeExpireTimerHandler(RedisModuleCtx *ctx, void *data) {
     }
 
 restart:
-    if (g_expire_algorithm.enable_active_expire) {
+    if (g_expire_algorithm.enable_active_expire) {  // 设置定时器
         g_expire_timer_id = RedisModule_CreateTimer(ctx, g_expire_algorithm.active_expire_period, activeExpireTimerHandler, NULL);
     }
 }
@@ -281,13 +281,13 @@ int fieldExpireIfNeeded(RedisModuleCtx *ctx, int dbid, RedisModuleString *key, t
         return 0;
     }
 
-    long long when = tair_hash_val->expire;
+    long long when = tair_hash_val->expire;  // 没有设置过期
     if (when == 0) {
         return 0;
     }
 
     long long now = RedisModule_Milliseconds();
-    if (isReadOnlyStatus(ctx)) {
+    if (isReadOnlyStatus(ctx)) {  // 只读不修改
         return now > when;
     }
 
@@ -470,7 +470,7 @@ void infoFunc(RedisModuleInfoCtx *ctx, int for_crash_report) {
 
 #endif
 
-void startExpireTimer(RedisModuleCtx *ctx, void *data) {
+void startExpireTimer(RedisModuleCtx *ctx, void *data) {  // 设置过期timer
     if (!g_expire_algorithm.enable_active_expire) {
         return;
     }
@@ -821,7 +821,7 @@ int TairHashTypeHset_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv,
 
     int dbid = RedisModule_GetSelectedDb(ctx);
     fieldExpireIfNeeded(ctx, dbid, pkey, tair_hash_obj, skey, 0);
-    TairHashVal *tair_hash_val = (TairHashVal *)m_dictFetchValue(tair_hash_obj->hash, skey);
+    TairHashVal *tair_hash_val = (TairHashVal *)m_dictFetchValue(tair_hash_obj->hash, skey);  // 获取val
     if (tair_hash_val == NULL) {
         if (ex_flags & TAIR_HASH_SET_XX) {
             RedisModule_ReplyWithLongLong(ctx, -1);
@@ -841,12 +841,12 @@ int TairHashTypeHset_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv,
 
         /* Version equals 0 means no version checking */
         if (ex_flags & TAIR_HASH_SET_WITH_VER) {
-            if (version != 0 && version != tair_hash_val->version) {
+            if (version != 0 && version != tair_hash_val->version) {  // version要保持一致
                 RedisModule_ReplyWithError(ctx, TAIRHASH_ERRORMSG_VERSION);
                 return REDISMODULE_ERR;
             }
         } else if (ex_flags & TAIR_HASH_SET_WITH_GT_VER) {
-            if (version <= tair_hash_val->version) {
+            if (version <= tair_hash_val->version) {  // 传入的version要大于cur
                 RedisModule_ReplyWithError(ctx, TAIRHASH_ERRORMSG_VERSION);
                 return REDISMODULE_ERR;
             }
@@ -856,7 +856,7 @@ int TairHashTypeHset_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv,
     if (ex_flags & (TAIR_HASH_SET_WITH_ABS_VER | TAIR_HASH_SET_WITH_GT_VER)) {
         tair_hash_val->version = version;
     } else {
-        tair_hash_val->version += 1;
+        tair_hash_val->version += 1;  // ver命令版本会自增，其他情况直接设置成新version
     }
 
     if (0 < expire) {
@@ -2604,7 +2604,7 @@ int TairHashTypeHscan_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv
     list *keys = m_listCreate();
 
     do {
-        cursor = m_dictScan(tair_hash_obj->hash, cursor, tairhashScanCallback, NULL, keys);
+        cursor = m_dictScan(tair_hash_obj->hash, cursor, tairhashScanCallback, NULL, keys);  // 将key value添加到list
     } while (cursor && maxiterations-- && listLength(keys) < (unsigned long)count);
 
     m_listNode *node, *nextnode;

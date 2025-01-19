@@ -65,18 +65,18 @@
  * will be Lost unless you specify ttl again. The `version` and `expire` of tairhash will
  * be completely recovered after the restore.
  */
-typedef struct TairHashVal {
+typedef struct TairHashVal {  // 保存version和过期时间
     long long version;
     long long expire;
     RedisModuleString *value;
 } TairHashVal;
 
-typedef struct tairHashObj {
-    dict *hash;
+typedef struct tairHashObj {  // 单个key的结构
+    dict *hash;  // 存放field value
 #if defined SLAB_MODE
     tairhash_zskiplist *expire_index;
 #else
-    m_zskiplist *expire_index;
+    m_zskiplist *expire_index;  // 主动过期时扫描
 #endif
     RedisModuleString *key;
 } tairHashObj;

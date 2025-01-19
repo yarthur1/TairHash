@@ -80,7 +80,7 @@ void activeExpire(RedisModuleCtx *ctx, int dbid, uint64_t keys_per_loop) {
                 Module_Assert(RedisModule_CallReplyType(keys_reply) == REDISMODULE_REPLY_ARRAY);
                 size_t keynum = RedisModule_CallReplyLength(keys_reply);
 
-                for (int j = 0; j < keynum; j++) {
+                for (int j = 0; j < keynum; j++) {  // 遍历db中的key
                     RedisModuleCallReply *key_reply = RedisModule_CallReplyArrayElement(keys_reply, j);
                     Module_Assert(RedisModule_CallReplyType(key_reply) == REDISMODULE_REPLY_STRING);
                     key = RedisModule_CreateStringFromCallReply(key_reply);
@@ -95,8 +95,8 @@ void activeExpire(RedisModuleCtx *ctx, int dbid, uint64_t keys_per_loop) {
 
                     if (RedisModule_ModuleTypeGetType(real_key) == TairHashType) {
                         tair_hash_obj = RedisModule_ModuleTypeGetValue(real_key);
-                        if (tair_hash_obj->expire_index->length > 0) {
-                            m_listAddNodeTail(keys, key);
+                        if (tair_hash_obj->expire_index->length > 0) {  // hash设置了过期field
+                            m_listAddNodeTail(keys, key);  // 将hash key添加到list
                         }
                     }
                     RedisModule_CloseKey(real_key);
@@ -137,7 +137,7 @@ void activeExpire(RedisModuleCtx *ctx, int dbid, uint64_t keys_per_loop) {
         }
 
         tair_hash_obj = RedisModule_ModuleTypeGetValue(real_key);
-        if (dictSize(tair_hash_obj->hash) == 1) {
+        if (dictSize(tair_hash_obj->hash) == 1) {  // 只有一个field
             may_delkey = 1;
         }
         RedisModule_CloseKey(real_key);
@@ -149,7 +149,7 @@ void activeExpire(RedisModuleCtx *ctx, int dbid, uint64_t keys_per_loop) {
         start_index = 0;
         while (ln2 && expire_keys_per_loop) {
             field = ln2->member;
-            if (fieldExpireIfNeeded(ctx, dbid, key, tair_hash_obj, field, 1)) {
+            if (fieldExpireIfNeeded(ctx, dbid, key, tair_hash_obj, field, 1)) {  // timer触发
                 g_expire_algorithm.stat_active_expired_field[dbid]++;
                 start_index++;
                 expire_keys_per_loop--;

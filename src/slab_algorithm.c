@@ -88,7 +88,7 @@ void activeExpire(RedisModuleCtx *ctx, int dbid, uint64_t keys_per_loop) {
     list *keys = m_listCreate();
 
     /* 1. The current db does not have a key that needs to expire. */
-    zsl_len = g_expire_index[dbid]->length;
+    zsl_len = g_expire_index[dbid]->length;  // 一级索引
     if (zsl_len == 0) {
         m_listRelease(keys);
         return;
@@ -138,7 +138,7 @@ void activeExpire(RedisModuleCtx *ctx, int dbid, uint64_t keys_per_loop) {
         zsl_len = tair_hash_obj->expire_index->length;
         Module_Assert(zsl_len > 0);
 
-        ln2 = tair_hash_obj->expire_index->header->level[0].forward;
+        ln2 = tair_hash_obj->expire_index->header->level[0].forward;  // slab expire_index没有排序？
         start_index = 0, delete_rank = 0;
         long long start_active_expire_timer = RedisModule_Milliseconds();
         while (ln2 && expire_keys_per_loop > 0) {
