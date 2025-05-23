@@ -146,7 +146,7 @@ void activeExpire(RedisModuleCtx *ctx, int dbid, uint64_t keys_per_loop) {
                 timeout_num = ln2->slab->num_keys;
                 ontime_num = 0;
             } else {
-                timeout_num = slab_getSlabTimeoutExpireIndex(ln2, ontime_indices, timeout_indices);
+                timeout_num = slab_getSlabTimeoutExpireIndex(ln2, ontime_indices, timeout_indices);  // 获取过期的field
                 ontime_num = ln2->slab->num_keys - timeout_num;
                 if (timeout_num <= 0)
                     break;
